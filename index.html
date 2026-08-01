@@ -470,6 +470,39 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .archive-id-copy {
+    cursor: pointer;
+    font-family: "Courier New", monospace;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .archive-id-copy::after {
+    content: "⧉";
+    font-size: 12px;
+    opacity: 0.7;
+  }
+  .archive-id-copy:hover { background: var(--brass-dim); color: var(--wood-dark); }
+  .archive-id-copy.copied {
+    background: var(--teal);
+    color: var(--teal-text);
+    border-color: var(--teal);
+  }
+
+  .archive-id-inline-copy {
+    background: none;
+    border: 1px solid var(--brass-dim);
+    color: var(--brass-light);
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: "Courier New", monospace;
+    flex-shrink: 0;
+  }
+  .archive-id-inline-copy:hover { background: var(--brass-dim); color: var(--wood-dark); }
+  .archive-id-inline-copy.copied { background: var(--teal); border-color: var(--teal); color: var(--teal-text); }
 
   /* ---------- Setup screen ---------- */
   .setup-shell {
@@ -645,7 +678,7 @@
       <div class="sub">Karteikasten für gespeicherte Links</div>
     </div>
     <div class="archive-info" id="archiveInfo">
-      <span class="archive-id" id="archiveIdLabel"></span>
+      <button class="archive-id archive-id-copy" id="archiveIdLabel" title="ID kopieren"></button>
       <button class="btn" id="shareBtn">Teilen</button>
       <button class="btn" id="refreshBtn" title="Vom Server aktualisieren">Aktualisieren</button>
       <button class="btn" id="leaveBtn">Zur Startseite</button>
@@ -716,6 +749,7 @@
           <span class="archive-id" id="sharedArchiveId"></span>
         </div>
         <div class="archive-list-item-actions">
+          <button class="archive-id-inline-copy" data-action="copy-shared">Kopieren</button>
           <button class="icon-btn" id="joinSharedBtn">Beitreten</button>
         </div>
       </div>
@@ -1193,6 +1227,26 @@
     } catch (e) { return ''; }
   }
 
+  function copyText(text, btn) {
+    function feedback() {
+      if (!btn) return;
+      var original = btn.textContent;
+      btn.classList.add('copied');
+      btn.textContent = 'Kopiert ✓';
+      setTimeout(function () {
+        btn.classList.remove('copied');
+        btn.textContent = original;
+      }, 1400);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(feedback).catch(function () {
+        prompt('ID kopieren:', text);
+      });
+    } else {
+      prompt('ID kopieren:', text);
+    }
+  }
+
   function renderHome() {
     var list = getArchiveList();
 
@@ -1207,6 +1261,7 @@
               '<span class="archive-meta">Zuletzt geöffnet: ' + formatDate(a.lastVisited) + '</span>' +
             '</div>' +
             '<div class="archive-list-item-actions">' +
+              '<button class="archive-id-inline-copy" data-action="copy">Kopieren</button>' +
               '<button class="icon-btn danger" data-action="remove">Entfernen</button>' +
             '</div>' +
           '</div>';
@@ -1217,7 +1272,12 @@
         item.querySelector('[data-action="open"]').addEventListener('click', function () {
           openArchive(id);
         });
-        item.querySelector('[data-action="remove"]').addEventListener('click', function () {
+        item.querySelector('[data-action="copy"]').addEventListener('click', function (e) {
+          e.stopPropagation();
+          copyText(id, e.currentTarget);
+        });
+        item.querySelector('[data-action="remove"]').addEventListener('click', function (e) {
+          e.stopPropagation();
           if (!confirm('Archiv "' + id + '" nur aus dieser Liste entfernen? Die Daten bleiben online erhalten.')) return;
           forgetArchive(id);
           renderHome();
@@ -1231,6 +1291,10 @@
       setupEls.sharedBox.style.display = 'block';
       setupEls.sharedId.textContent = hashId;
       setupEls.joinSharedBtn.onclick = function () { openArchive(hashId); };
+      var copySharedBtn = setupEls.sharedBox.querySelector('[data-action="copy-shared"]');
+      if (copySharedBtn) {
+        copySharedBtn.onclick = function () { copyText(hashId, copySharedBtn); };
+      }
     } else {
       setupEls.sharedBox.style.display = 'none';
     }
@@ -1247,8 +1311,10 @@
   }
 
   function updateArchiveInfoUI() {
+    var label = document.getElementById('archiveIdLabel');
     document.getElementById('archiveInfo').style.display = 'flex';
-    document.getElementById('archiveIdLabel').textContent = 'Archiv-ID: ' + state.archiveId;
+    label.textContent = 'Archiv-ID: ' + state.archiveId;
+    label.onclick = function () { copyText(state.archiveId, label); };
   }
 
   function enterApp() {
