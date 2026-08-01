@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Link-Archiv</title>
+<style>
+  :root {
+    --wood-dark: #1b1712;
+    --wood-mid: #241e17;
+    --wood-rail: #2c2419;
+    --brass: #b8935a;
+    --brass-light: #d9b880;
+    --brass-dim: #8a6f47;
+    --card-cream: #f3ecda;
+    --card-cream-2: #ece2c7;
+    --ink: #2b2620;
+    --ink-soft: #6b6152;
+    --teal: #3f5142;
+    --teal-text: #e7ead1;
+    --stamp-red: #a8412f;
+    --stamp-red-light: #c65840;
+    --danger: #8f2f22;
+    --focus: #d9b880;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--wood-dark);
+    color: var(--ink);
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    min-height: 100vh;
+  }
+
+  ::selection { background: var(--brass); color: var(--wood-dark); }
+
+  button, input, select {
+    font-family: inherit;
+  }
+
+  input:focus-visible, select:focus-visible, button:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+
+  /* ---------- Header ---------- */
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--brass-dim);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .masthead h1 {
+    margin: 0;
+    color: var(--brass-light);
+    font-size: 28px;
+    letter-spacing: 0.5px;
+    font-weight: normal;
+  }
+  .masthead .sub {
+    font-family: "Courier New", Courier, monospace;
+    color: var(--brass-dim);
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .search-slot {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+    background: var(--card-cream);
+    border: 1px solid var(--card-cream-2);
+    border-radius: 3px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+  }
+  .search-slot::before {
+    content: "SUCHE";
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--ink-soft);
+    margin-right: 10px;
+    border-right: 1px solid var(--ink-soft);
+    padding-right: 10px;
+  }
+  .search-slot input {
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    font-size: 15px;
+    padding: 10px 0;
+    width: 100%;
+  }
+  .search-slot input:focus { outline: none; }
+  .search-slot input:focus-visible { outline: none; }
+
+  select#sortSelect {
+    background: var(--card-cream);
+    border: 1px solid var(--card-cream-2);
+    border-radius: 3px;
+    padding: 10px 12px;
+    color: var(--ink);
+    font-size: 13px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.35);
+  }
+
+  .btn {
+    border: 1px solid var(--brass-dim);
+    background: transparent;
+    color: var(--brass-light);
+    padding: 10px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: Georgia, serif;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--brass-dim); color: var(--wood-dark); }
+  .btn.primary {
+    background: var(--brass);
+    color: var(--wood-dark);
+    border-color: var(--brass);
+    font-weight: bold;
+  }
+  .btn.primary:hover { background: var(--brass-light); }
+
+  /* ---------- Body layout ---------- */
+  .body-layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .drawer-rail {
+    background: var(--wood-rail);
+    border: 1px solid #14100b;
+    border-radius: 4px;
+    padding: 10px 0;
+    position: sticky;
+    top: 20px;
+  }
+  .rail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    cursor: pointer;
+    color: #cfc4a8;
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .rail-item:hover { background: rgba(184,147,90,0.12); }
+  .rail-item.active {
+    border-left-color: var(--brass);
+    background: rgba(184,147,90,0.18);
+    color: var(--brass-light);
+  }
+  .rail-item .count {
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    background: var(--card-cream);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+  .rail-item.active .count { color: var(--wood-dark); }
+  .rail-divider {
+    height: 1px;
+    background: var(--brass-dim);
+    opacity: 0.35;
+    margin: 8px 14px;
+  }
+  .rail-heading {
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--brass-dim);
+    padding: 8px 14px 4px;
+    text-transform: uppercase;
+  }
+
+  /* ---------- Cards grid ---------- */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    align-content: start;
+  }
+
+  .card {
+    background: var(--card-cream);
+    border-radius: 3px;
+    padding: 18px 16px 14px;
+    position: relative;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.5);
+    border: 1px solid var(--card-cream-2);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 150px;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--wood-dark);
+    box-shadow: 0 0 0 2px var(--card-cream-2), inset 0 1px 2px rgba(0,0,0,0.6);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .card-name {
+    font-size: 17px;
+    font-weight: bold;
+    color: var(--ink);
+    line-height: 1.3;
+    word-break: break-word;
+  }
+  .heart-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 2px 4px;
+    color: var(--ink-soft);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .heart-btn.favorited { color: var(--stamp-red); }
+  .heart-btn:hover { color: var(--stamp-red-light); }
+
+  .topic-tag {
+    display: inline-block;
+    background: var(--teal);
+    color: var(--teal-text);
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 2px;
+    align-self: flex-start;
+    transform: rotate(-1deg);
+  }
+
+  .card-url {
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    word-break: break-all;
+    border-bottom: 1px dotted var(--ink-soft);
+    display: inline-block;
+    width: fit-content;
+  }
+  .card-url:hover { color: var(--stamp-red); border-color: var(--stamp-red); }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px dashed var(--card-cream-2);
+  }
+  .icon-btn {
+    background: none;
+    border: 1px solid var(--ink-soft);
+    color: var(--ink-soft);
+    border-radius: 3px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: "Courier New", monospace;
+  }
+  .icon-btn:hover { background: var(--ink); color: var(--card-cream); }
+  .icon-btn.danger:hover { background: var(--danger); border-color: var(--danger); color: var(--card-cream); }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--brass-dim);
+  }
+  .empty-state h2 {
+    color: var(--brass-light);
+    font-weight: normal;
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .empty-state p { font-size: 14px; color: #a89873; }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card-cream);
+    border-radius: 4px;
+    padding: 26px 28px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  }
+  .modal h2 {
+    margin: 0 0 18px;
+    font-size: 20px;
+    color: var(--ink);
+    font-weight: normal;
+    border-bottom: 2px solid var(--brass-dim);
+    padding-bottom: 10px;
+  }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #c9bb98;
+    border-radius: 3px;
+    background: #fbf7ec;
+    color: var(--ink);
+    font-size: 14px;
+  }
+  .field input:focus { outline: none; border-color: var(--stamp-red); }
+  .fav-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 18px;
+  }
+  .fav-toggle input { width: 16px; height: 16px; }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .modal-actions .btn { color: var(--ink); border-color: var(--ink-soft); }
+  .modal-actions .btn:hover { background: var(--ink); color: var(--card-cream); }
+  .modal-actions .btn.primary { background: var(--stamp-red); color: #fbe9e4; border-color: var(--stamp-red); }
+  .modal-actions .btn.primary:hover { background: var(--stamp-red-light); }
+
+  .error-banner {
+    background: var(--danger);
+    color: #fbe9e4;
+    padding: 10px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    display: none;
+  }
+  .error-banner.show { display: block; }
+  .error-banner.info { background: var(--teal); color: var(--teal-text); }
+
+  .share-note {
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    color: var(--brass-dim);
+    margin-top: 4px;
+  }
+
+  /* ---------- Archive info bar ---------- */
+  .archive-info {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .archive-id {
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    color: var(--brass-dim);
+    background: var(--wood-rail);
+    border: 1px solid #14100b;
+    padding: 6px 10px;
+    border-radius: 3px;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ---------- Setup screen ---------- */
+  .setup-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .setup-card {
+    background: var(--card-cream);
+    border-radius: 6px;
+    padding: 32px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  }
+  .setup-card h1 {
+    margin: 0 0 6px;
+    font-size: 24px;
+    font-weight: normal;
+    color: var(--ink);
+    border-bottom: 2px solid var(--brass-dim);
+    padding-bottom: 12px;
+  }
+  .setup-card p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 14px 0 20px;
+  }
+  .setup-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin: 20px 0;
+  }
+  .setup-divider::before, .setup-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--card-cream-2);
+  }
+  .setup-card label {
+    display: block;
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .setup-card input {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #c9bb98;
+    border-radius: 3px;
+    background: #fbf7ec;
+    color: var(--ink);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .setup-card input:focus { outline: none; border-color: var(--stamp-red); }
+  .setup-card .btn { width: 100%; text-align: center; }
+  .setup-card .btn.primary { color: var(--wood-dark); }
+  .setup-error {
+    display: none;
+    background: var(--danger);
+    color: #fbe9e4;
+    padding: 10px 12px;
+    border-radius: 3px;
+    font-size: 12px;
+    margin-top: 14px;
+  }
+  .setup-error.show { display: block; }
+
+  @media (max-width: 720px) {
+    .body-layout { grid-template-columns: 1fr; }
+    .drawer-rail {
+      position: static;
+      display: flex;
+      overflow-x: auto;
+      padding: 8px;
+      gap: 4px;
+    }
+    .rail-item { flex-shrink: 0; }
+    .rail-divider, .rail-heading { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="appRoot" style="display:none;">
+  <div class="masthead">
+    <div>
+      <h1>Link-Archiv</h1>
+      <div class="sub">Karteikasten für gespeicherte Links</div>
+    </div>
+    <div class="archive-info" id="archiveInfo">
+      <span class="archive-id" id="archiveIdLabel"></span>
+      <button class="btn" id="shareBtn">Teilen</button>
+      <button class="btn" id="refreshBtn" title="Vom Server aktualisieren">Aktualisieren</button>
+      <button class="btn" id="leaveBtn">Archiv wechseln</button>
+    </div>
+  </div>
+
+  <div id="errorBanner" class="error-banner"></div>
+
+  <div class="toolbar">
+    <div class="search-slot">
+      <input type="text" id="searchInput" placeholder="Nach Namen suchen…">
+    </div>
+    <span id="resultCount" style="font-family:'Courier New',monospace;font-size:12px;color:var(--brass-dim);white-space:nowrap;"></span>
+    <select id="sortSelect">
+      <option value="newest">Neueste zuerst</option>
+      <option value="oldest">Älteste zuerst</option>
+      <option value="name">Name A–Z</option>
+      <option value="topic">Thema A–Z</option>
+    </select>
+    <button class="btn primary" id="addBtn">+ Link speichern</button>
+  </div>
+
+  <div class="body-layout">
+    <aside class="drawer-rail" id="drawerRail"></aside>
+    <main class="cards-grid" id="cardsGrid"></main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Link speichern</h2>
+    <form id="linkForm" novalidate>
+      <div class="field">
+        <label for="nameInput">Name</label>
+        <input type="text" id="nameInput" placeholder="z. B. Tomatensuppe Rezept">
+      </div>
+      <div class="field">
+        <label for="urlInput">Link</label>
+        <input type="text" id="urlInput" placeholder="https://beispiel.de/rezept">
+      </div>
+      <div class="field">
+        <label for="topicInput">Thema</label>
+        <input type="text" id="topicInput" list="topicList" placeholder="z. B. Kochen">
+        <datalist id="topicList"></datalist>
+      </div>
+      <label class="fav-toggle">
+        <input type="checkbox" id="favInput">
+        Als Favorit markieren
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="cancelBtn">Abbrechen</button>
+        <button type="submit" class="btn primary" id="saveBtn">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="setup-shell" id="setupShell">
+  <div class="setup-card">
+    <h1>Link-Archiv einrichten</h1>
+    <p>
+      Deine Links werden in einem öffentlichen, kostenlosen Online-Speicher (jsonblob.com) abgelegt.
+      Jede Person mit der Archiv-ID kann lesen, hinzufügen, bearbeiten und löschen — teile die ID
+      also nur mit Personen, denen du vertraust.
+    </p>
+    <button class="btn primary" id="createArchiveBtn">Neues Archiv erstellen</button>
+    <div class="setup-divider">oder</div>
+    <label for="joinIdInput">Vorhandene Archiv-ID</label>
+    <input type="text" id="joinIdInput" placeholder="z. B. 3f9a2b1c-7e21-4a90-9c31-...">
+    <button class="btn" id="joinArchiveBtn">Archiv beitreten</button>
+    <div class="setup-error" id="setupError"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var state = {
+    archiveId: null,
+    links: [],
+    filterTopic: 'all',
+    searchTerm: '',
+    sort: 'newest',
+    editingId: null,
+    loaded: false
+  };
+
+  var els = {
+    grid: document.getElementById('cardsGrid'),
+    rail: document.getElementById('drawerRail'),
+    search: document.getElementById('searchInput'),
+    sort: document.getElementById('sortSelect'),
+    addBtn: document.getElementById('addBtn'),
+    overlay: document.getElementById('modalOverlay'),
+    form: document.getElementById('linkForm'),
+    modalTitle: document.getElementById('modalTitle'),
+    nameInput: document.getElementById('nameInput'),
+    urlInput: document.getElementById('urlInput'),
+    topicInput: document.getElementById('topicInput'),
+    favInput: document.getElementById('favInput'),
+    topicList: document.getElementById('topicList'),
+    cancelBtn: document.getElementById('cancelBtn'),
+    errorBanner: document.getElementById('errorBanner')
+  };
+
+  function showBanner(msg, type) {
+    els.errorBanner.textContent = msg;
+    els.errorBanner.classList.remove('info');
+    if (type === 'info') els.errorBanner.classList.add('info');
+    els.errorBanner.classList.add('show');
+    setTimeout(function () { els.errorBanner.classList.remove('show'); }, 4000);
+  }
+  function showError(msg) { showBanner(msg, 'error'); }
+
+  function genId() {
+    return 'l_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  }
+
+  function normalizeUrl(url) {
+    url = url.trim();
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'https://' + url;
+    }
+    return url;
+  }
+
+  var JSONBLOB_BASE = 'https://jsonblob.com/api/jsonBlob/';
+
+  async function jsonblobCreate() {
+    var res = await fetch(JSONBLOB_BASE.slice(0, -1), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: '[]'
+    });
+    if (!res.ok) {
+      var errText = '';
+      try { errText = await res.text(); } catch (e) {}
+      throw new Error('Status ' + res.status + (errText ? ' – ' + errText : ''));
+    }
+    var location = res.headers.get('Location');
+    if (!location) {
+      var err = new Error('MANUAL_FALLBACK');
+      err.manualFallback = true;
+      throw err;
+    }
+    var parts = location.split('/');
+    var id = parts[parts.length - 1];
+    if (!id) throw new Error('Keine Archiv-ID erhalten.');
+    return id;
+  }
+
+  async function jsonblobGetLinks(blobId) {
+    var res = await fetch(JSONBLOB_BASE + encodeURIComponent(blobId), {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store'
+    });
+    if (res.status === 404) throw new Error('Archiv nicht gefunden (404)');
+    if (!res.ok) {
+      var errText = '';
+      try { errText = await res.text(); } catch (e) {}
+      throw new Error('Status ' + res.status + (errText ? ' – ' + errText : ''));
+    }
+    var text = await res.text();
+    if (!text) return [];
+    return JSON.parse(text);
+  }
+
+  async function jsonblobSetLinks(blobId, links) {
+    var res = await fetch(JSONBLOB_BASE + encodeURIComponent(blobId), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(links)
+    });
+    if (!res.ok) {
+      var errText = '';
+      try { errText = await res.text(); } catch (e) {}
+      throw new Error('Status ' + res.status + (errText ? ' – ' + errText : ''));
+    }
+  }
+
+  function getHashId() {
+    var m = location.hash.match(/archiv=([a-zA-Z0-9_-]+)/);
+    return m ? m[1] : null;
+  }
+  function setHashId(id) {
+    try { history.replaceState(null, '', '#archiv=' + id); } catch (e) {}
+  }
+
+  async function saveLinks() {
+    try {
+      await jsonblobSetLinks(state.archiveId, state.links);
+    } catch (e) {
+      console.error('Fehler beim Speichern:', e);
+      showError('Speichern fehlgeschlagen (' + e.message + '). Bitte Internetverbindung prüfen und erneut versuchen.');
+    }
+  }
+
+  function getTopics() {
+    var set = {};
+    state.links.forEach(function (l) { if (l.topic) set[l.topic] = (set[l.topic] || 0) + 1; });
+    return Object.keys(set).sort(function (a, b) { return a.localeCompare(b, 'de'); }).map(function (t) {
+      return { name: t, count: set[t] };
+    });
+  }
+
+  function renderRail() {
+    var topics = getTopics();
+    var favCount = state.links.filter(function (l) { return l.favorite; }).length;
+    var html = '';
+    html += '<div class="rail-item' + (state.filterTopic === 'all' ? ' active' : '') + '" data-topic="all">' +
+      '<span>Alle</span><span class="count">' + state.links.length + '</span></div>';
+    html += '<div class="rail-item' + (state.filterTopic === 'fav' ? ' active' : '') + '" data-topic="fav">' +
+      '<span>♥ Favoriten</span><span class="count">' + favCount + '</span></div>';
+    html += '<div class="rail-divider"></div>';
+    html += '<div class="rail-heading">Themen</div>';
+    if (topics.length === 0) {
+      html += '<div class="rail-item" style="cursor:default;color:#8a7e63;font-size:12px;">Noch keine Themen</div>';
+    }
+    topics.forEach(function (t) {
+      html += '<div class="rail-item' + (state.filterTopic === t.name ? ' active' : '') + '" data-topic="' +
+        escapeHtml(t.name) + '"><span>' + escapeHtml(t.name) + '</span><span class="count">' + t.count + '</span></div>';
+    });
+    els.rail.innerHTML = html;
+
+    els.rail.querySelectorAll('.rail-item[data-topic]').forEach(function (item) {
+      item.addEventListener('click', function () {
+        state.filterTopic = item.getAttribute('data-topic');
+        render();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function getFilteredSorted() {
+    var list = state.links.slice();
+
+    if (state.filterTopic === 'fav') {
+      list = list.filter(function (l) { return l.favorite; });
+    } else if (state.filterTopic !== 'all') {
+      list = list.filter(function (l) { return l.topic === state.filterTopic; });
+    }
+
+    if (state.searchTerm.trim()) {
+      var term = state.searchTerm.trim().toLowerCase();
+      list = list.filter(function (l) { return l.name.toLowerCase().indexOf(term) !== -1; });
+    }
+
+    list.sort(function (a, b) {
+      switch (state.sort) {
+        case 'oldest': return a.created - b.created;
+        case 'name': return a.name.localeCompare(b.name, 'de');
+        case 'topic': return a.topic.localeCompare(b.topic, 'de') || (b.created - a.created);
+        default: return b.created - a.created;
+      }
+    });
+
+    return list;
+  }
+
+  function renderCards() {
+    try {
+      var list = getFilteredSorted();
+
+      var countEl = document.getElementById('resultCount');
+      if (countEl) {
+        countEl.textContent = list.length + ' von ' + state.links.length;
+      }
+
+      if (list.length === 0) {
+        var msg = state.links.length === 0
+          ? { h: 'Noch keine Links im Archiv', p: 'Lege deinen ersten Link an, um mit dem Sortieren zu beginnen.' }
+          : { h: 'Keine Treffer', p: 'Passe die Suche oder das gewählte Thema an.' };
+        els.grid.innerHTML = '<div class="empty-state"><h2>' + escapeHtml(msg.h) + '</h2><p>' + escapeHtml(msg.p) + '</p></div>';
+        return;
+      }
+
+      els.grid.innerHTML = list.map(function (l) {
+        return '' +
+          '<div class="card" data-id="' + l.id + '">' +
+            '<div class="card-top">' +
+              '<div class="card-name">' + escapeHtml(l.name) + '</div>' +
+              '<button class="heart-btn' + (l.favorite ? ' favorited' : '') + '" data-action="fav" aria-label="Favorit umschalten">' + (l.favorite ? '♥' : '♡') + '</button>' +
+            '</div>' +
+            '<span class="topic-tag">' + escapeHtml(l.topic) + '</span>' +
+            '<a class="card-url" href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(l.url) + '</a>' +
+            '<div class="card-actions">' +
+              '<button class="icon-btn" data-action="edit">Bearbeiten</button>' +
+              '<button class="icon-btn danger" data-action="delete">Löschen</button>' +
+            '</div>' +
+          '</div>';
+      }).join('');
+
+      els.grid.querySelectorAll('.card').forEach(function (card) {
+        var id = card.getAttribute('data-id');
+        card.querySelector('[data-action="fav"]').addEventListener('click', function () { toggleFavorite(id); });
+        card.querySelector('[data-action="edit"]').addEventListener('click', function () { openEditModal(id); });
+        card.querySelector('[data-action="delete"]').addEventListener('click', function () { deleteLink(id); });
+      });
+    } catch (err) {
+      console.error('Fehler beim Rendern der Karten:', err);
+      showError('Fehler beim Anzeigen der Links: ' + err.message);
+    }
+  }
+
+  function renderTopicDatalist() {
+    els.topicList.innerHTML = getTopics().map(function (t) {
+      return '<option value="' + escapeHtml(t.name) + '"></option>';
+    }).join('');
+  }
+
+  function render() {
+    renderRail();
+    renderCards();
+    renderTopicDatalist();
+  }
+
+  async function toggleFavorite(id) {
+    var link = state.links.find(function (l) { return l.id === id; });
+    if (!link) return;
+    link.favorite = !link.favorite;
+    render();
+    await saveLinks();
+  }
+
+  async function deleteLink(id) {
+    var link = state.links.find(function (l) { return l.id === id; });
+    if (!link) return;
+    if (!confirm('"' + link.name + '" wirklich löschen?')) return;
+    state.links = state.links.filter(function (l) { return l.id !== id; });
+    render();
+    await saveLinks();
+  }
+
+  function openAddModal() {
+    state.editingId = null;
+    els.modalTitle.textContent = 'Link speichern';
+    els.nameInput.value = '';
+    els.urlInput.value = '';
+    els.topicInput.value = '';
+    els.favInput.checked = false;
+    els.overlay.classList.add('open');
+    els.nameInput.focus();
+  }
+
+  function openEditModal(id) {
+    var link = state.links.find(function (l) { return l.id === id; });
+    if (!link) return;
+    state.editingId = id;
+    els.modalTitle.textContent = 'Link bearbeiten';
+    els.nameInput.value = link.name;
+    els.urlInput.value = link.url;
+    els.topicInput.value = link.topic;
+    els.favInput.checked = !!link.favorite;
+    els.overlay.classList.add('open');
+    els.nameInput.focus();
+  }
+
+  function closeModal() {
+    els.overlay.classList.remove('open');
+  }
+
+  async function handleSubmit(e) {
+    if (e) e.preventDefault();
+
+    var name = els.nameInput.value.trim();
+    var url = els.urlInput.value.trim();
+    var topic = els.topicInput.value.trim();
+    var favorite = els.favInput.checked;
+
+    if (!name || !url || !topic) {
+      showError('Bitte Name, Link und Thema ausfüllen.');
+      return;
+    }
+
+    url = normalizeUrl(url);
+
+    try {
+      if (state.editingId) {
+        var link = state.links.find(function (l) { return l.id === state.editingId; });
+        if (link) {
+          link.name = name;
+          link.url = url;
+          link.topic = topic;
+          link.favorite = favorite;
+          link.updated = Date.now();
+        }
+      } else {
+        state.links.push({
+          id: genId(),
+          name: name,
+          url: url,
+          topic: topic,
+          favorite: favorite,
+          created: Date.now(),
+          updated: Date.now()
+        });
+      }
+
+      closeModal();
+      render();
+      await saveLinks();
+    } catch (err) {
+      console.error('Fehler beim Speichern:', err);
+      showError('Beim Speichern ist ein Fehler aufgetreten.');
+    }
+  }
+
+  els.addBtn.addEventListener('click', openAddModal);
+  els.cancelBtn.addEventListener('click', closeModal);
+  els.overlay.addEventListener('click', function (e) { if (e.target === els.overlay) closeModal(); });
+  els.form.addEventListener('submit', handleSubmit);
+  document.getElementById('saveBtn').addEventListener('click', function (e) {
+    e.preventDefault();
+    handleSubmit(null);
+  });
+  function onSearchChange() {
+    state.searchTerm = els.search.value;
+    renderCards();
+  }
+  els.search.addEventListener('input', onSearchChange);
+  els.search.addEventListener('keyup', onSearchChange);
+  els.search.addEventListener('change', onSearchChange);
+  els.sort.addEventListener('change', function () { state.sort = els.sort.value; renderCards(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && els.overlay.classList.contains('open')) closeModal();
+  });
+
+  var setupEls = {
+    shell: document.getElementById('setupShell'),
+    heading: document.querySelector('#setupShell h1'),
+    createBtn: document.getElementById('createArchiveBtn'),
+    joinBtn: document.getElementById('joinArchiveBtn'),
+    joinInput: document.getElementById('joinIdInput'),
+    error: document.getElementById('setupError')
+  };
+
+  function showSetupError(msg) {
+    setupEls.error.textContent = msg;
+    setupEls.error.classList.add('show');
+  }
+  function clearSetupError() {
+    setupEls.error.classList.remove('show');
+    setupEls.error.textContent = '';
+  }
+
+  function updateArchiveInfoUI() {
+    document.getElementById('archiveInfo').style.display = 'flex';
+    document.getElementById('archiveIdLabel').textContent = 'Archiv-ID: ' + state.archiveId;
+  }
+
+  function enterApp() {
+    setupEls.shell.style.display = 'none';
+    document.getElementById('appRoot').style.display = '';
+    updateArchiveInfoUI();
+    render();
+    startPolling();
+  }
+
+  setupEls.createBtn.addEventListener('click', async function () {
+    clearSetupError();
+    setupEls.createBtn.disabled = true;
+    var originalText = setupEls.createBtn.textContent;
+    setupEls.createBtn.textContent = 'Erstelle Archiv…';
+    try {
+      var id = await jsonblobCreate();
+      state.archiveId = id;
+      state.links = [];
+      localStorage.setItem('linkArchivId', id);
+      setHashId(id);
+      enterApp();
+    } catch (e) {
+      console.error(e);
+      if (e.manualFallback) {
+        showSetupError(
+          'Automatische Erstellung nicht möglich (Browser blockiert das Lesen der Archiv-ID). ' +
+          'Bitte stattdessen: 1) Öffne jsonblob.com in einem neuen Tab, 2) trage [] in das Feld ein und klicke "Save", ' +
+          '3) kopiere den letzten Teil der Adresse aus der Ergebnis-URL (z. B. "a1b2c3d4-...") und füge ihn unten bei "Vorhandene Archiv-ID" ein.'
+        );
+      } else {
+        showSetupError('Archiv konnte nicht erstellt werden (' + e.message + '). Bitte Internetverbindung prüfen und erneut versuchen.');
+      }
+    } finally {
+      setupEls.createBtn.disabled = false;
+      setupEls.createBtn.textContent = originalText;
+    }
+  });
+
+  setupEls.joinBtn.addEventListener('click', async function () {
+    clearSetupError();
+    var id = setupEls.joinInput.value.trim();
+    if (!id) { showSetupError('Bitte eine Archiv-ID eingeben.'); return; }
+    setupEls.joinBtn.disabled = true;
+    var originalText = setupEls.joinBtn.textContent;
+    setupEls.joinBtn.textContent = 'Verbinde…';
+    try {
+      var links = await jsonblobGetLinks(id);
+      state.archiveId = id;
+      state.links = links;
+      localStorage.setItem('linkArchivId', id);
+      setHashId(id);
+      enterApp();
+    } catch (e) {
+      console.error(e);
+      showSetupError('Archiv "' + id + '" nicht gefunden oder nicht erreichbar (' + e.message + ').');
+    } finally {
+      setupEls.joinBtn.disabled = false;
+      setupEls.joinBtn.textContent = originalText;
+    }
+  });
+
+  document.getElementById('shareBtn').addEventListener('click', function () {
+    var url = location.origin + location.pathname + '#archiv=' + state.archiveId;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () {
+        showBanner('Link kopiert – einfach an andere Personen weitergeben.', 'info');
+      }).catch(function () {
+        prompt('Diesen Link teilen:', url);
+      });
+    } else {
+      prompt('Diesen Link teilen:', url);
+    }
+  });
+
+  document.getElementById('refreshBtn').addEventListener('click', async function () {
+    try {
+      state.links = await jsonblobGetLinks(state.archiveId);
+      render();
+      showBanner('Aktualisiert.', 'info');
+    } catch (e) {
+      showError('Aktualisieren fehlgeschlagen (' + e.message + ').');
+    }
+  });
+
+  document.getElementById('leaveBtn').addEventListener('click', function () {
+    if (!confirm('Dieses Archiv verlassen? Deine Links bleiben online gespeichert, du kannst mit der Archiv-ID jederzeit zurückkehren.')) return;
+    localStorage.removeItem('linkArchivId');
+    history.replaceState(null, '', location.pathname);
+    location.reload();
+  });
+
+  var pollTimer = null;
+  function startPolling() {
+    if (pollTimer) return;
+    pollTimer = setInterval(async function () {
+      if (els.overlay.classList.contains('open')) return;
+      try {
+        state.links = await jsonblobGetLinks(state.archiveId);
+        render();
+      } catch (e) {
+        /* stiller Fehlschlag im Hintergrund */
+      }
+    }, 20000);
+  }
+
+  (async function init() {
+    var existingId = getHashId() || localStorage.getItem('linkArchivId');
+    if (existingId) {
+      setupEls.heading.textContent = 'Lade Archiv…';
+      try {
+        var links = await jsonblobGetLinks(existingId);
+        state.archiveId = existingId;
+        state.links = links;
+        localStorage.setItem('linkArchivId', existingId);
+        setHashId(existingId);
+        enterApp();
+        return;
+      } catch (e) {
+        console.error(e);
+        setupEls.heading.textContent = 'Link-Archiv einrichten';
+        showSetupError('Gespeichertes Archiv (ID: ' + existingId + ') konnte nicht geladen werden (' + e.message + '). Bitte erneut versuchen oder ein neues Archiv erstellen.');
+      }
+    }
+  })();
+})();
+</script>
+
+</body>
+</html>
